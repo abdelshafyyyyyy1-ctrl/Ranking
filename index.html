@@ -33,6 +33,7 @@ summary .row{margin:0;border:0;background:none}
 <div class="note">Points: attendance = 2 pts per session · Full team attendance = +1 pt per member for each session where every team member attended (teams of 2+). Team name = team leader’s name for now.</div>
 </div>
 <script>
+var SHEET_URL="https://script.google.com/macros/s/AKfycbwZQ2RgNoEYHn4dSZjn50xHRh_p2VqtmGvfMxSBiObPfZzPiCoGTT75USKIf2qPPw5xrA/exec";
 var CFG=[{key:"BD",name:"BD",unit:"Deals",pts:20,per:1,c:0},{key:"OGV",name:"OGV",unit:"GV APD",pts:5,per:1,c:5},{key:"OGT",name:"OGT",unit:"GT APD",pts:7,per:1,c:10},{key:"B2C",name:"B2C",unit:"Sign-ups",pts:5,per:50,c:15},{key:"RAISING",name:"Raising",unit:"Slots",pts:3,per:1,c:20},{key:"ICX",name:"CONSEDRATION",unit:"ICX APD",pts:6,per:1,c:25}];
 var DATA=[];
 function parse(j){var v=j.values,b=j.bold;return CFG.map(function(f){var teams=[],cur=null;for(var r=2;r<v.length;r++){var n=String(v[r][f.c]||"").trim();if(!n){cur=null;continue}if(b[r][f.c]||!cur){cur={leader:n,members:[]};teams.push(cur)}cur.members.push({n:n,v:parseFloat(v[r][f.c+1])||0,a:parseFloat(v[r][f.c+3])||0})}return{key:f.key,name:f.name,unit:f.unit,pts:f.pts,per:f.per,teams:teams}})}
@@ -68,9 +69,9 @@ function rank2(a){a.sort(function(x,y){return y.p-x.p||x.name.localeCompare(y.na
 var sel=document.getElementById("fn");sel.innerHTML='<option value="all">All functions</option>'+CFG.map(function(f){return'<option value="'+f.key+'">'+esc(f.name)+"</option>"}).join("");
 sel.onchange=render;document.getElementById("q").oninput=render;
 document.querySelectorAll(".tab").forEach(function(b){b.onclick=function(){tab=b.dataset.t;document.querySelectorAll(".tab").forEach(function(x){x.classList.toggle("on",x==b)});render()}});
-function load(){google.script.run.withSuccessHandler(function(j){DATA=parse(j);B=build();render();
- document.getElementById("sub").textContent="Live from the sheet · updated "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}).withFailureHandler(function(){
- document.getElementById("sub").textContent="Couldn’t load the latest data — retrying…";if(!DATA.length)document.getElementById("list").innerHTML='<div class="empty">Couldn’t load the data. Refresh the page.</div>'}).getData()}
+function load(){fetch(SHEET_URL,{credentials:"omit"}).then(function(r){return r.json()}).then(function(j){DATA=parse(j);B=build();render();
+ document.getElementById("sub").textContent="Live from the sheet · updated "+new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}).catch(function(){
+ document.getElementById("sub").textContent="Couldn’t load the latest data — retrying…";if(!DATA.length)document.getElementById("list").innerHTML='<div class="empty">Couldn’t load the data. Refresh the page.</div>'})}
 document.getElementById("list").innerHTML='<div class="empty">Loading…</div>';
 load();setInterval(load,60000);document.addEventListener("visibilitychange",function(){if(!document.hidden)load()});
 </script></body></html>
